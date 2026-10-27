@@ -195,7 +195,7 @@ def monitor(db: Session):
 
     if not db_ok:
         issues.append(_issue('critical', 'pipeline', 'Database', 'Database unreachable', 'The API cannot query PostgreSQL.',
-            ['Run docker compose ps and confirm the postgres container is healthy.', 'Check DATABASE_URL in the root .env.']))
+            ['Confirm the cloud PostgreSQL instance is running and permits connections from this network.', 'Check DATABASE_URL, credentials and SSL settings in the root .env.']))
     scan = db.scalar(select(Scan).where(Scan.org_id == org).order_by(Scan.created_at.desc()).limit(1))
     if resources and (scan is None or (now - _aware(scan.created_at)).total_seconds() > 86400):
         issues.append(_issue('info', 'pipeline', 'Analysis', 'No recent analysis', 'Recommendations may not reflect the latest rules.', ['Press Run analysis on the Opportunities page.']))

@@ -20,11 +20,11 @@ os.environ['SECRETS_KEY'] = Fernet.generate_key().decode()
 
 from fastapi.testclient import TestClient
 from app import auth
-from app.db import Base, get_db
+from app.db import Base, connect_args, get_db
 from app.main import app
 from app.tenant import bind
 
-options = {'connect_args': {'check_same_thread': False}, 'poolclass': StaticPool} if test_url.startswith('sqlite') else {}
+options = {'connect_args': {'check_same_thread': False}, 'poolclass': StaticPool} if test_url.startswith('sqlite') else {'connect_args': connect_args}
 test_engine = create_engine(test_url, **options)
 TestSession = sessionmaker(bind=test_engine, expire_on_commit=False)
 

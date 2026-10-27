@@ -1,13 +1,13 @@
 # Cloud Cost Optimizer Agent — connected full-stack source
 
-Run the frontend and backend directly on your computer. **Only PostgreSQL runs in Docker.**
+Run the frontend and backend directly on your computer. **PostgreSQL is hosted in TiDB Cloud; Docker is not required.**
 
 | Component | Technology | Local address |
 |---|---|---|
 | Frontend | JavaScript + Vite | http://localhost:5173 |
 | Backend | Python + FastAPI | http://127.0.0.1:8000 |
 | API documentation | Swagger UI | http://127.0.0.1:8000/docs |
-| Database | PostgreSQL 17, Docker Compose | 127.0.0.1:5433 |
+| Database | Cloud PostgreSQL over verified TLS | Your TiDB Cloud endpoint, port 5432 |
 
 The dashboard is connected to the API. Organizations, users, inventory, findings, decisions, scans and audit events persist in PostgreSQL. There is no browser-only fallback database.
 
@@ -42,8 +42,7 @@ The dashboard is connected to the API. Organizations, users, inventory, findings
 | `backend/app/` | FastAPI routes, models, schemas, rules, services, organization scoping (`tenant.py`) and sample data |
 | `backend/alembic/` | Versioned database migrations |
 | `backend/tests/` | API workflow, validation and rule tests |
-| `docker-compose.yml` | PostgreSQL service only |
-| `scripts/setup.py` | Generate local database password and separate API tokens |
+| `scripts/setup.py` | Generate the local credential-encryption key and configuration template |
 | `docs/END_TO_END.md` | The complete flow from setup to verified savings, with a demo script |
 | `docs/API.md` | API routes and workflow contract |
 | `docs/ARCHITECTURE.md` | Runtime flow, database and design choices |
@@ -54,33 +53,31 @@ The dashboard is connected to the API. Organizations, users, inventory, findings
 
 - Python 3.12 recommended.
 - Node.js 22.12+ or 24 and npm.
-- Docker Desktop on Windows/macOS, or Docker Engine with the Compose plugin on Linux.
-- Free local ports 5173, 8000 and 5433.
+- A running cloud PostgreSQL instance and its connection credentials.
+- Free local ports 5173 and 8000, and network access to the cloud database on port 5432.
 
-Extract the ZIP first and open terminals in the extracted `cloud-cost-optimizer` folder. Keep Docker running.
+Extract the ZIP first and open terminals in the extracted `cloud-cost-optimizer` folder. Keep your cloud database available.
 
 ## Windows PowerShell setup
 
-### 1. Configure and start PostgreSQL
+### 1. Configure cloud PostgreSQL
 
 Run from the project root:
 
 ```powershell
 py -3.12 scripts/setup.py
-docker compose up -d postgres
-docker compose ps
 ```
 
-Wait until the database shows **healthy**. If you do not have the Windows `py` launcher, use your Python 3.12 `python` command instead.
+Edit the root `.env` and set `DATABASE_URL` to your cloud PostgreSQL URL (see Database configuration below). If you do not have the Windows `py` launcher, use your Python 3.12 `python` command instead.
 
-The setup script creates a root `.env` with generated secrets. It will refuse to overwrite an existing `.env`. Do not share it or commit the file. There are no API tokens to copy: you create an organization and sign in with an email and password in the app.
+The setup script creates a root `.env` with a generated encryption key and a placeholder database URL. It will refuse to overwrite an existing `.env`. Do not share it or commit the file. There are no API tokens to copy: you create an organization and sign in with an email and password in the app.
 
 ### 2. Start the backend — terminal A
 
 ```powershell
 cd backend
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
@@ -105,16 +102,14 @@ From the project root:
 
 ```bash
 python3 scripts/setup.py
-docker compose up -d postgres
-docker compose ps
 ```
 
-After PostgreSQL becomes healthy, terminal A:
+Set `DATABASE_URL` in the root `.env` to your cloud PostgreSQL URL, then in terminal A:
 
 ```bash
 cd backend
 python3 -m venv .venv
-./.venv/bin/python -m pip install -r requirements.lock.txt
+./.venv/bin/python -m pip install -r requirements.txt
 ./.venv/bin/python -m alembic upgrade head
 ./.venv/bin/python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
@@ -143,29 +138,23 @@ The reviewer label is descriptive; the signed-in member's email is recorded as t
 
 ## Database configuration
 
-The backend runs on the host, so its connection string uses **127.0.0.1:5433**, not the Compose hostname `postgres:5432`.
+FastAPI and Alembic read `DATABASE_URL` from the root `.env`, regardless of your terminal's working directory. This deployment uses the PostgreSQL endpoint supplied by TiDB Cloud, with the existing `psycopg` driver.
 
-`docker-compose.yml` reads `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_PORT` from the root `.env`. FastAPI reads `DATABASE_URL` from that same file regardless of your terminal's working directory. If you change the port, credentials or database name, update both the Compose variables and `DATABASE_URL` consistently. URL-encode special characters in manually chosen URL passwords; generated passwords are URL-safe.
-
-PostgreSQL initialization variables apply when a new volume is created. Editing `.env` does not change an existing database user's password. Change an existing password using SQL before updating the connection URL. Keep the same Compose project name and volume when restarting.
-
-Inspect database health/logs:
-
-```bash
-docker compose logs postgres
-docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+```dotenv
+DATABASE_URL=postgresql+psycopg://YOUR_USERNAME:YOUR_URL_ENCODED_PASSWORD@YOUR_HOST:5432/postgres?sslmode=verify-full&connect_timeout=15
 ```
 
-Inside psql, `\dt` lists tables and `\q` exits.
+Use the database name shown in your cloud console; `postgres` is the default used here. URL-encode special characters in usernames and passwords. Keep real credentials only in the ignored `.env`, never in `.env.example` or frontend configuration.
+
+The backend verifies the server certificate and hostname using the `certifi` CA bundle. For a provider with a private CA, add `sslrootcert=/absolute/path/to/provider-ca.pem` to the URL. See [PostgreSQL SSL documentation](https://www.postgresql.org/docs/17/libpq-ssl.html).
+
+From `backend`, run `python -m alembic upgrade head` using your virtual environment before starting the API. This creates/upgrades application tables in the selected database. Switching the URL does not copy data from the previous local database. Keep the existing `SECRETS_KEY` if importing previous encrypted cloud-account credentials.
 
 ## Stop and restart
 
 - Press Ctrl+C in frontend and backend terminals.
-- Run `docker compose stop postgres` to stop only the database.
-- Run `docker compose up -d postgres` to start it again.
 - Start FastAPI and Vite with the same commands above. Reinstallation and reseeding are unnecessary.
-
-The named database volume survives container stops and `docker compose down`. Deleting that volume destroys its data. The sample-restore button replaces inventory and reopens decisions but deliberately retains audit and integration history.
+- Manage the hosted database through the cloud console; it runs independently of the app.
 
 ## Tests and builds
 
@@ -175,17 +164,11 @@ From `backend`, using the relevant venv Python:
 python -m pytest -q
 ```
 
-Use `.\.venv\Scripts\python.exe -m pytest -q` on Windows, or `./.venv/bin/python -m pytest -q` on Linux if the venv is not activated. The locked requirements include the test dependencies.
+Use `.\.venv\Scripts\python.exe -m pytest -q` on Windows, or `./.venv/bin/python -m pytest -q` on Linux if the venv is not activated. The single backend requirements.txt includes pinned application and test dependencies.
 
 Tests use an isolated in-memory SQLite database by default; they never use the application `DATABASE_URL`. PostgreSQL integration testing is available by setting `TEST_DATABASE_URL` to a **dedicated test database whose name ends in `_test`**. Test fixtures drop/recreate tables there. Do not point this variable at a database with valuable data.
 
-Example PostgreSQL test database, using the default Compose credentials:
-
-```bash
-docker compose exec postgres createdb -U optimizer cloud_optimizer_test
-```
-
-Set `TEST_DATABASE_URL=postgresql+psycopg://optimizer:YOUR_PASSWORD@127.0.0.1:5433/cloud_optimizer_test` in your terminal environment, then run pytest. The test command is the same on either database.
+For PostgreSQL integration tests, provision a separate database such as `cloud_optimizer_test` in your cloud instance. Set `TEST_DATABASE_URL` to its PostgreSQL URL with `sslmode=verify-full`, then run pytest. Never use the application's database for these tests.
 
 From `frontend`:
 
@@ -207,14 +190,14 @@ Preview is at http://localhost:4173 and also proxies the local backend. The Vite
 | Symptom | Fix |
 |---|---|
 | Backend refuses startup due to missing API tokens | Run `scripts/setup.py` from the root and check the root `.env` |
-| Database unavailable/schema missing | Check Docker health and run `python -m alembic upgrade head` from backend |
-| PostgreSQL password authentication failed | Ensure the password in the existing volume matches `.env`; changing initialization variables does not rotate existing passwords |
+| Database unavailable/schema missing | Check cloud database connectivity and run `python -m alembic upgrade head` from backend |
+| PostgreSQL password authentication failed | Ensure the cloud username, password and database name match `DATABASE_URL` in `.env` |
 | Cannot reach backend | Keep uvicorn running on port 8000; check `frontend/vite.config.js` and optional `frontend/.env.local` |
 | Incorrect email or password | Check the email and password. Ask an admin of your organization to remove and re-add you if the password is lost (there is no reset yet) |
 | Too many incorrect attempts | Wait 10 minutes, or restart the backend |
 | `Database unavailable or schema missing` after pulling this version | Run `python -m alembic upgrade head` from `backend` (migration 0004 adds organizations and users) |
 | Decision returns 409 | Evidence or status changed; refresh and review the latest recommendation |
-| Port 5433 already used | Change both `POSTGRES_PORT` and the port in `DATABASE_URL` before starting |
+| Cloud connection timeout or TLS error | Check cloud status, network access on port 5432, and the configured CA certificate |
 | npm reports unsupported Node version | Install Node 22.12+ or 24 |
 | Import fails | Match the sample JSON field names/types; maximum 500 resources and 1 MB via frontend |
 | CORS error with another frontend origin | Update `CORS_ORIGINS` in root `.env` and restart the backend |

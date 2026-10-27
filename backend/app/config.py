@@ -9,7 +9,7 @@ class Settings(BaseSettings):
         env_file=Path(__file__).resolve().parents[2] / '.env',
         extra='ignore',
     )
-    database_url: str = 'postgresql+psycopg://optimizer:invalid@127.0.0.1:5433/cloud_optimizer'
+    database_url: str = Field(min_length=1)
     session_hours: int = Field(default=12, ge=1, le=168)
     # Fernet key that encrypts cloud credentials at rest. Generate with scripts/setup.py.
     secrets_key: str = ''

@@ -1,11 +1,11 @@
 # Architecture
 
-The frontend and backend are ordinary host processes. PostgreSQL is the only Docker Compose service.
+The frontend and backend are ordinary host processes. PostgreSQL is hosted in TiDB Cloud and reached over verified TLS; Docker is not required.
 
 ```mermaid
 flowchart TD
   UI["Frontend · Vite :5173"] -->|"Bearer-authenticated API"| API["Backend · FastAPI :8000"]
-  API --> DB[("PostgreSQL · Docker :5433")]
+  API --> DB[("Cloud PostgreSQL · TLS :5432")]
   API --> Rules["Deterministic Python rules"]
   API -->|"Optional explanation"| LLM["Configured LLM provider"]
 ```
@@ -71,4 +71,4 @@ One finding per resource avoids adding idle, resize and scheduling savings on to
 - Add verified billing baselines and health checks to measure savings after live changes.
 - Add an explicit approval callback designed for authenticated owners if you later move approval into a ticketing system.
 
-The source package is independent of the previously published static preview. It is intended to run locally using your requested host-process plus Docker-database setup.
+The source package is independent of the previously published static preview. It is intended to run locally using host processes connected to cloud PostgreSQL.

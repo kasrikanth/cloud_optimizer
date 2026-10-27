@@ -100,7 +100,7 @@ flowchart TB
 ### 4.1 Setup (administrator, once)
 
 1. `python scripts/setup.py` creates `.env` with generated secrets, including `SECRETS_KEY` for the credential vault.
-2. `docker compose up -d postgres`, then in `backend`: install requirements, `alembic upgrade head`, and start `uvicorn`.
+2. Set the cloud PostgreSQL `DATABASE_URL` in the root `.env`, then in `backend`: install requirements, `alembic upgrade head`, and start `uvicorn`.
 3. In `frontend`: `npm ci` and `npm run dev`.
 4. Optionally set in `.env`: `SESSION_HOURS`, `SYNC_INTERVAL_MINUTES`. There is no shared code or admin token; the first user creates an organization on the sign-in page.
 

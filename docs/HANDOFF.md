@@ -64,7 +64,7 @@ Old routes redirect (`#approvals` → Opportunities with Approved filter, `#acti
 
 ## 4. Architecture and key files
 
-Stack: Python 3.12 + FastAPI + SQLAlchemy + Alembic, PostgreSQL 17 in Docker (only the database is in Docker), Vite + plain JavaScript frontend (no framework).
+Stack: Python 3.12 + FastAPI + SQLAlchemy + Alembic, cloud PostgreSQL over verified TLS, Vite + plain JavaScript frontend (no framework).
 
 ```
 backend/app/main.py            routes, auth dependency, lifespan scheduler
@@ -100,9 +100,9 @@ Design choices worth keeping: ingest is the only write path for inventory (one t
 ```powershell
 # one time, from the project root
 py -3.12 scripts/setup.py            # creates .env with generated secrets (SECRETS_KEY included)
-docker compose up -d postgres
+# Set DATABASE_URL in .env to the cloud PostgreSQL endpoint before migrations.
 cd backend; py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 # second terminal
@@ -111,9 +111,9 @@ cd frontend; npm ci; npm run dev     # http://localhost:5173
 
 Create an organization on the sign-in page (or claim the migrated one by signing up with its name), then sign in with email + password. Tests: `cd backend; .\.venv\Scripts\python.exe -m pytest -q` (58 pass, in-memory SQLite). Frontend check: `npm run build`.
 
-Environment at the time of writing: PostgreSQL, the backend and Vite were running locally (ports 5433, 8000, 5173). `.claude/launch.json` defines `backend` and `frontend` preview servers. The database contains test data: sample accounts and VMs, a GCP test account, a demo account "Payments (AWS demo)" and some verified ledger entries. Use Cloud accounts → Restore sample inventory or remove those accounts to clean up.
+Historical local environment (before the cloud database switch): PostgreSQL, the backend and Vite were running locally (ports 5433, 8000, 5173). `.claude/launch.json` defines `backend` and `frontend` preview servers. The database contains test data: sample accounts and VMs, a GCP test account, a demo account "Payments (AWS demo)" and some verified ledger entries. Use Cloud accounts → Restore sample inventory or remove those accounts to clean up.
 
-Key `.env` settings: `DATABASE_URL`, `POSTGRES_*`, `SESSION_HOURS`, `SECRETS_KEY`, `SYNC_ENABLED`, `SYNC_INTERVAL_MINUTES`, `CORS_ORIGINS`, optional `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`. Back up `SECRETS_KEY` with the database; losing it means re-entering credentials.
+Key `.env` settings: `DATABASE_URL`, `SESSION_HOURS`, `SECRETS_KEY`, `SYNC_ENABLED`, `SYNC_INTERVAL_MINUTES`, `CORS_ORIGINS`, optional `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`. Back up `SECRETS_KEY` with the database; losing it means re-entering credentials.
 
 ## 6. APIs: what writes to the database
 
