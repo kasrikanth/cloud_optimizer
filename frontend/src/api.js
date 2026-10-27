@@ -1,4 +1,6 @@
 const base=(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/,'');
+// Free ngrok tunnels answer browser calls with a warning page unless this header is sent.
+const tunnelHeaders=/\.ngrok[\w-]*\.(app|dev|io)$/i.test(new URL(base||'http://x').hostname)?{'ngrok-skip-browser-warning':'1'}:{};
 const store=(key)=>({get:()=>sessionStorage.getItem(key)||'',set:v=>sessionStorage.setItem(key,v),clear:()=>sessionStorage.removeItem(key)});
 const tokenStore=store('optimizer-api-token'),emailStore=store('optimizer-user-email');
 export const auth={
@@ -11,7 +13,7 @@ export class ApiError extends Error{constructor(message,status){super(message);t
 export async function request(path,{method='GET',body,raw=false}={}){
   let response;
   const token=auth.get();
-  try{response=await fetch(base+path,{method,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},body:body!==undefined?JSON.stringify(body):undefined});}
+  try{response=await fetch(base+path,{method,headers:{...tunnelHeaders,...(token?{Authorization:'Bearer '+token}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},body:body!==undefined?JSON.stringify(body):undefined});}
   catch{throw new ApiError('Cannot reach the backend. Start FastAPI on port 8000 and check the frontend proxy.',0);}
   if(!response.ok){let data;try{data=await response.json();}catch{}const detail=data?.detail;throw new ApiError(typeof detail==='string'?detail:detail?detail.map(d=>d.loc.join('.')+': '+d.msg).join('; '):'Request failed ('+response.status+')',response.status);}
   return raw?response.blob():response.json();
