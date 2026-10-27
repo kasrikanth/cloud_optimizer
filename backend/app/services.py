@@ -18,7 +18,8 @@ def writer_lock(db: Session):
     # Serialize one organization's writes across API workers so imports cannot race with approvals.
     # Other organizations are not blocked. PostgreSQL releases this transaction-scoped lock on commit/rollback.
     if db.bind.dialect.name == 'postgresql':
-        db.execute(text('SELECT pg_advisory_xact_lock(88022026, hashtext(:org))'), {'org': org_of(db)})
+        # PostgreSQL-compatible gateways may not infer an untyped parameter inside hashtext.
+        db.execute(text('SELECT pg_advisory_xact_lock(88022026, hashtext(CAST(:org AS text)))'), {'org': org_of(db)})
 
 
 def audit(db: Session, title: str, detail: str, actor='system'):
