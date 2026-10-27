@@ -44,7 +44,9 @@ async def lifespan(_app):
 app = FastAPI(lifespan=lifespan, title='Cloud Cost Optimizer API', version='1.0.0', description='Multi-organization workspace with email + password sign-in. Each organization sees only its own cloud accounts and data. All cloud actions are dry runs.')
 app.add_middleware(CORSMiddleware,
     allow_origins=[o.strip() for o in settings.cors_origins.split(',')],
-    allow_methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type'])
+    allow_methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    # ngrok-skip-browser-warning lets a frontend on another machine bypass ngrok's free-tier interstitial page.
+    allow_headers=['Authorization', 'Content-Type', 'ngrok-skip-browser-warning'])
 bearer = HTTPBearer(auto_error=False)
 DB = Annotated[Session, Depends(get_db)]
 
