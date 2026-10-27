@@ -1,0 +1,16 @@
+[
+  {"id": "imp-web-prod-01", "name": "web-prod-01", "provider": "AWS", "region": "ap-south-1", "type": "m5.xlarge", "env": "Production", "owner": "Web team",
+   "cost": 140, "targetCost": 70, "cpu": 52, "memory": 61, "network": 80, "days": 30, "coverage": 99, "hours": 730, "critical": true},
+  {"id": "imp-api-prod-01", "name": "api-prod-01", "provider": "AWS", "region": "ap-south-1", "type": "c5.xlarge", "env": "Production", "owner": "Platform team",
+   "cost": 124, "targetCost": 62, "cpu": 18, "memory": 33, "network": 25, "days": 30, "coverage": 99, "hours": 730, "critical": false},
+  {"id": "imp-staging-api-01", "name": "staging-api-01", "provider": "AWS", "region": "ap-south-1", "type": "m5.xlarge", "env": "Staging", "owner": "Platform team",
+   "cost": 140, "targetCost": 70, "cpu": 12, "memory": 24, "network": 6, "days": 30, "coverage": 99, "hours": 730, "critical": false},
+  {"id": "imp-dev-sandbox-01", "name": "dev-sandbox-01", "provider": "AWS", "region": "ap-south-1", "type": "t3.large", "env": "Development", "owner": "Platform team",
+   "cost": 61, "targetCost": 30, "cpu": 3, "memory": 9, "network": 0.3, "days": 30, "coverage": 99, "hours": 730, "critical": false},
+  {"id": "imp-data-etl-01", "name": "data-etl-01", "provider": "AWS", "region": "ap-south-1", "type": "m5.2xlarge", "env": "Development", "owner": "Data team",
+   "cost": 280, "targetCost": 140, "cpu": 4, "memory": 11, "network": 0.8, "days": 30, "coverage": 98, "hours": 730, "critical": false},
+  {"id": "imp-ci-runner-01", "name": "ci-runner-01", "provider": "AWS", "region": "ap-south-1", "type": "m5.large", "env": "Development", "owner": "Developer experience",
+   "cost": 70, "targetCost": 35, "cpu": 38, "memory": 47, "network": 15, "days": 30, "coverage": 99, "hours": 730, "critical": false},
+  {"id": "imp-new-etl-02", "name": "new-etl-02", "provider": "AWS", "region": "ap-south-1", "type": "t3.medium", "env": "Development", "owner": "Data team",
+   "cost": 30, "targetCost": 15, "cpu": 5, "memory": null, "network": 1, "days": 6, "coverage": 68, "hours": 730, "critical": false}
+]

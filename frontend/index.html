@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stratus · Cloud Cost Optimizer</title><meta name="description" content="Optimize, compare and monitor AWS, Azure and GCP accounts in one organization workspace."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/src/style.css"></head>
+<body>
+<aside class="sidebar"><a class="brand" href="#overview">stratus</a><div class="org-name" id="org-name"></div><button type="button" class="menu-button" id="menu-toggle" aria-expanded="false" aria-controls="navigation">Menu</button><nav id="navigation" aria-label="Main"></nav></aside>
+<main><header class="topbar"><span id="crumb">Overview</span><div class="topbar-right"><span id="user-email" class="user-email"></span><button class="text-button" id="logout">Sign out</button></div></header>
+<div class="content"><div class="page-heading"><div><h1 id="title">Overview</h1><p id="subtitle"></p></div><div id="heading-actions"></div></div><div id="view"></div></div></main>
+<div class="overlay" id="overlay" hidden></div><section class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Recommendation details" hidden></section><div id="toast" role="status"></div><input type="file" id="import-file" accept="application/json,.json" hidden><input type="file" id="account-import-file" accept="application/json,.json" hidden><script type="module" src="/src/app.js"></script>
+</body></html>

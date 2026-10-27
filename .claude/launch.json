@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "D:\\hackathon\\cloud-cost-optimizer-fullstack\\cloud-cost-optimizer\\backend\\.venv\\Scripts\\python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--app-dir", "D:\\hackathon\\cloud-cost-optimizer-fullstack\\cloud-cost-optimizer\\backend", "--host", "127.0.0.1", "--port", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "D:\\hackathon\\cloud-cost-optimizer-fullstack\\cloud-cost-optimizer\\frontend", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

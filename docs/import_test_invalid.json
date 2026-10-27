@@ -1,0 +1,6 @@
+[
+  {"id": "bad-negative-cost", "name": "negative-cost", "provider": "AWS", "region": "ap-south-1", "type": "m5.large", "env": "Development", "owner": "QA",
+   "cost": -10, "targetCost": 35, "cpu": 5, "memory": 10, "network": 1, "days": 30, "coverage": 99, "hours": 730, "critical": false},
+  {"id": "bad-provider", "name": "wrong-cloud", "provider": "Oracle", "region": "x", "type": "m5.large", "env": "Development", "owner": "QA",
+   "cost": 70, "targetCost": 35, "cpu": 5, "memory": 10, "network": 1, "days": 30, "coverage": 99, "hours": 730, "critical": false}
+]
